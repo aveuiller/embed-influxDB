@@ -1,5 +1,6 @@
 package io.apisense.embed.influx.download;
 
+import io.apisense.embed.influx.configuration.OSType;
 import io.apisense.embed.influx.configuration.VersionConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,14 +19,22 @@ public class InfluxUrlGenerator implements UrlGenerator {
 
     @Override
     public URL buildSource(VersionConfiguration configuration) {
-        StringBuilder builder = new StringBuilder(HOSTNAME)
-                .append("/").append(BASE_URL)
-                .append("/").append(configuration.version.directory)
-                .append("/").append(PRODUCT_NAME)
-                .append("-").append(configuration.version.dlPath)
-                .append("_").append(configuration.os.dlPath)
-                .append("_").append(configuration.architecture.dlPath)
-                .append(".").append(configuration.os.archiveType.extension);
+        StringBuilder builder = new StringBuilder();
+        // For a MacOS system, we will have to build the influxdb from sources
+        if (configuration.os.equals(OSType.MacOS_X)) {
+            builder.append("https://github.com/influxdata/influxdb/archive/v")
+                    .append(configuration.version.dlPath) // FIXME: This will not work with nightly version!
+                    .append(".tar.gz");
+        } else {
+            builder.append(HOSTNAME)
+                    .append("/").append(BASE_URL)
+                    .append("/").append(configuration.version.directory)
+                    .append("/").append(PRODUCT_NAME)
+                    .append("-").append(configuration.version.dlPath)
+                    .append("_").append(configuration.os.dlPath)
+                    .append("_").append(configuration.architecture.dlPath)
+                    .append(".").append(configuration.os.archiveType.extension);
+        }
         try {
             return new URL(builder.toString());
         } catch (MalformedURLException e) {
